@@ -299,21 +299,51 @@ async function runThreatPipeline(url, source, tabId) {
 
   // Store final result for popup (if pipeline wasn't aborted)
   if (!result._abort) {
-    await chrome.storage.local.set({
-      [storageKey]: {
-        domain: result.domain || domain,
+    const finalData = {
+      domain: result.domain || domain,
+      url,
+      gemini: result.geminiResult || null,
+      serpRisky: result.serpRisky || false,
+      serpMatchCount: result.serpMatchCount || 0,
+      decision: result.decision || "ALLOWED",
+      explanation: result.explanation || null,
+      riskLevel: result.riskLevel || null,
+      timestamp,
+      executionLog: result._executionLog,
+      totalDurationMs: result._totalDurationMs,
+    };
+
+    await chrome.storage.local.set({ [storageKey]: finalData });
+
+    // ── History Tracking ─────────────────────────────────────────────────
+    try {
+      const histData = await chrome.storage.local.get("neuroguard_history");
+      const history = histData.neuroguard_history || [];
+
+      history.unshift({
         url,
-        gemini: result.geminiResult || null,
+        domain: result.domain || domain,
+        status: result.geminiResult || "UNKNOWN",
+        action: result.decision || "ALLOWED",
         serpRisky: result.serpRisky || false,
         serpMatchCount: result.serpMatchCount || 0,
-        decision: result.decision || "ALLOWED",
         explanation: result.explanation || null,
         riskLevel: result.riskLevel || null,
-        timestamp,
-        executionLog: result._executionLog,
-        totalDurationMs: result._totalDurationMs,
-      },
-    });
+        durationMs: result._totalDurationMs || 0,
+        time: new Date().toLocaleString("en-US", {
+          year: "numeric", month: "short", day: "numeric",
+          hour: "2-digit", minute: "2-digit", second: "2-digit",
+        }),
+      });
+
+      // Cap at 500 entries
+      if (history.length > 500) history.length = 500;
+
+      await chrome.storage.local.set({ neuroguard_history: history });
+      console.log(`  📋 History updated (${history.length} entries)`);
+    } catch (histErr) {
+      console.error("  History tracking error:", histErr.message);
+    }
   }
 }
 

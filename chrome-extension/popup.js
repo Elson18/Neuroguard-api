@@ -130,5 +130,10 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 
+// ─── Dashboard button ──────────────────────────────────────────────────────
+document.getElementById("openDashboard").addEventListener("click", () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("history.html") });
+});
+
 // ─── Initialize ────────────────────────────────────────────────────────────
 loadCurrentTabResult();

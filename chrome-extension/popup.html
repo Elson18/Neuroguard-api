@@ -295,6 +295,22 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
     }
+
+    /* ── Dashboard Button ── */
+    .dashboard-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin: 14px 16px 0; padding: 12px;
+      border-radius: 12px; border: 1px solid rgba(99,102,241,0.2);
+      background: rgba(99,102,241,0.08);
+      color: #818cf8; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      font-family: inherit; transition: all 0.2s ease;
+    }
+    .dashboard-btn:hover {
+      background: rgba(99,102,241,0.15);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99,102,241,0.2);
+    }
   </style>
 </head>
 <body>
@@ -353,6 +369,11 @@
       </div>
     </div>
   </div>
+
+  <!-- Dashboard Button -->
+  <button class="dashboard-btn" id="openDashboard">
+    📊 Activity Dashboard
+  </button>
 
   <!-- Footer -->
   <div class="footer">
