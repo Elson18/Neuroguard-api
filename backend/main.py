@@ -24,6 +24,7 @@ from routes.agent_routes import (
 )
 from routes.auth_routes import router as auth_router
 from routes.rag_routes import router as rag_router
+from routes.neuroguard_routes import router as neuroguard_router
 
 
 @asynccontextmanager
@@ -83,6 +84,7 @@ app.include_router(agents_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
 app.include_router(rag_router, prefix="/api")
+app.include_router(neuroguard_router, prefix="/api")
 app.include_router(public_agent_router)
 
 
@@ -111,6 +113,7 @@ def _mount_frontend() -> None:
         "/chat": root / "chat.html",
         "/agents": root / "agents.html",
         "/extension": root / "extension.html",
+        "/browse-dashboard": root / "browse-dashboard.html",
     }
 
     for route, file_path in page_routes.items():
