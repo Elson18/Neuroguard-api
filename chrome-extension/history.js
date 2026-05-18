@@ -97,6 +97,15 @@ document.getElementById("clearBtn").addEventListener("click", async function() {
   allHistory = [];
   updateStats([]);
   renderTable([]);
+
+  // Sync to Backend Database
+  try {
+    fetch(`${BACKEND_URL}/api/neuroguard/history`, { method: "DELETE" })
+      .then(res => console.log("  │  🗑️ Backend history cleared successfully"))
+      .catch(err => console.error("  │  Failed to clear backend history:", err.message));
+  } catch (err) {
+    console.error("Failed to clear backend history:", err.message);
+  }
 });
 
 // Live updates when storage changes

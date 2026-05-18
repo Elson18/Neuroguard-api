@@ -245,7 +245,7 @@ async function runThreatPipeline(url, source, tabId) {
       const histData = await chrome.storage.local.get("neuroguard_history");
       const history = histData.neuroguard_history || [];
 
-      history.unshift({
+      const entry = {
         url,
         domain: result.domain || domain,
         status: (result.decision === "BLOCKED" || result.serpRisky) ? "HARMFUL" : "SAFE",
@@ -259,13 +259,36 @@ async function runThreatPipeline(url, source, tabId) {
           year: "numeric", month: "short", day: "numeric",
           hour: "2-digit", minute: "2-digit", second: "2-digit",
         }),
-      });
+      };
+
+      history.unshift(entry);
 
       // Cap at 500 entries
       if (history.length > 500) history.length = 500;
 
       await chrome.storage.local.set({ neuroguard_history: history });
       console.log(`  📋 History updated (${history.length} entries)`);
+
+      // ── Sync to Backend Database ──
+      try {
+        fetch(`${BACKEND_URL}/api/neuroguard/history`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(entry),
+        }).then(response => {
+          if (!response.ok) {
+            console.error(`  │  Backend sync error status: ${response.status}`);
+          } else {
+            console.log("  │  🔄 Sync to backend database successful!");
+          }
+        }).catch(err => {
+          console.error("  │  Backend sync request failed:", err.message);
+        });
+      } catch (syncErr) {
+        console.error("  │  Backend sync failed:", syncErr.message);
+      }
     } catch (histErr) {
       console.error("  History tracking error:", histErr.message);
     }
