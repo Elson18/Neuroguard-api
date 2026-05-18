@@ -147,12 +147,8 @@ registerNode("decision_engine", {
     let riskLevel = "LOW";
     if (shouldBlock) {
       riskLevel = "HIGH";
-      if (isAmtsoSimulation) {
-        explanation = "This page is blocked because it is identified as an AMTSO Phishing Simulation Test.";
-      } else if (isAmtsoDownload) {
-        explanation = "This page is blocked because it is identified as an AMTSO Malware Download Simulation Test.";
-      } else if (isEicarSimulation) {
-        explanation = "This page is blocked because it is identified as an EICAR Anti-Malware Simulation Testfile.";
+      if (isAmtsoSimulation || isAmtsoDownload || isEicarSimulation) {
+        explanation = "Harmful website detected. Access blocked by NeuroGuard to protect your device from phishing and malware.";
       } else {
         const topMatch = serpMatches && serpMatches[0];
         if (topMatch) {
