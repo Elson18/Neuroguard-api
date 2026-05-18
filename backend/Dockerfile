@@ -4,17 +4,17 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Copy requirements first
-COPY requirements.txt .
+# Copy requirements from parent folder
+COPY ../requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all backend files
+# Copy backend files
 COPY . .
 
 # Expose port
-EXPOSE 10000
+EXPOSE 8000
 
 # Start application
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "main:app", "--bind", "0.0.0.0:10000"]
+CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "main:app", "--bind", "0.0.0.0:8000"]
