@@ -85,6 +85,7 @@ def _mount_frontend() -> None:
         "/create-agent": root / "create-agent.html",
         "/chat": root / "chat.html",
         "/agents": root / "agents.html",
+        "/extension": root / "extension.html",
     }
 
     for route, file_path in page_routes.items():
