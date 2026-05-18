@@ -121,13 +121,16 @@ registerNode("decision_engine", {
   label: "Decision Engine",
   description: "Reputation results to make final allow/block decision",
   execute(context) {
-    const { serpRisky, serpMatchCount, serpMatches } = context;
+    const { url, serpRisky, serpMatchCount, serpMatches } = context;
 
-    const shouldBlock = serpRisky;
+    // Check for explicit blocked simulation URL (AMTSO)
+    const isAmtsoSimulation = url && url.includes("amtso.org/security-features-check/phishing-page");
+    const shouldBlock = serpRisky || isAmtsoSimulation;
     const decision = shouldBlock ? "BLOCKED" : "ALLOWED";
 
     const reasons = [];
     if (serpRisky) reasons.push(`SerpApi → ${serpMatchCount} threat(s)`);
+    if (isAmtsoSimulation) reasons.push("AMTSO Phishing Simulation Test");
 
     if (shouldBlock) {
       console.log(`  │  🛡️  BLOCK — ${reasons.join(" + ")}`);
@@ -140,11 +143,15 @@ registerNode("decision_engine", {
     let riskLevel = "LOW";
     if (shouldBlock) {
       riskLevel = "HIGH";
-      const topMatch = serpMatches && serpMatches[0];
-      if (topMatch) {
-        explanation = `This site was flagged for a potential threat: "${topMatch.keyword}" was mentioned in search results: "${topMatch.title}".`;
+      if (isAmtsoSimulation) {
+        explanation = "This page is blocked because it is identified as an AMTSO Phishing Simulation Test.";
       } else {
-        explanation = "This website has a poor online reputation and has been flagged as unsafe.";
+        const topMatch = serpMatches && serpMatches[0];
+        if (topMatch) {
+          explanation = `This site was flagged for a potential threat: "${topMatch.keyword}" was mentioned in search results: "${topMatch.title}".`;
+        } else {
+          explanation = "This website has a poor online reputation and has been flagged as unsafe.";
+        }
       }
     }
 
