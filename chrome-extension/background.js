@@ -123,15 +123,17 @@ registerNode("decision_engine", {
   execute(context) {
     const { url, serpRisky, serpMatchCount, serpMatches } = context;
 
-    // Check for explicit blocked simulation URLs (AMTSO & EICAR)
+    // Check for explicit blocked simulation URLs
     const isAmtsoSimulation = url && url.includes("amtso.org/security-features-check/phishing-page");
+    const isAmtsoDownload = url && url.includes("amtso.org/security-features-check/download-file");
     const isEicarSimulation = url && url.includes("eicar.org/download-anti-malware-testfile");
-    const shouldBlock = serpRisky || isAmtsoSimulation || isEicarSimulation;
+    const shouldBlock = serpRisky || isAmtsoSimulation || isAmtsoDownload || isEicarSimulation;
     const decision = shouldBlock ? "BLOCKED" : "ALLOWED";
 
     const reasons = [];
     if (serpRisky) reasons.push(`SerpApi → ${serpMatchCount} threat(s)`);
     if (isAmtsoSimulation) reasons.push("AMTSO Phishing Simulation Test");
+    if (isAmtsoDownload) reasons.push("AMTSO Malware Download Simulation Test");
     if (isEicarSimulation) reasons.push("EICAR Anti-Malware Testfile Simulation");
 
     if (shouldBlock) {
@@ -147,6 +149,8 @@ registerNode("decision_engine", {
       riskLevel = "HIGH";
       if (isAmtsoSimulation) {
         explanation = "This page is blocked because it is identified as an AMTSO Phishing Simulation Test.";
+      } else if (isAmtsoDownload) {
+        explanation = "This page is blocked because it is identified as an AMTSO Malware Download Simulation Test.";
       } else if (isEicarSimulation) {
         explanation = "This page is blocked because it is identified as an EICAR Anti-Malware Simulation Testfile.";
       } else {
