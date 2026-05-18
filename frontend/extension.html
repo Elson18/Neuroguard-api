@@ -165,7 +165,7 @@
           <div class="ext-hero__icon">🛡️</div>
           <h2>NeuroGuard Chrome Extension</h2>
           <p>Protect your browsing with AI-powered URL classification, reputation analysis, and automatic threat blocking.</p>
-          <a class="ext-download-btn" href="/chrome-extension/neuroguard-extension.zip" download id="downloadBtn">
+          <a class="ext-download-btn" href="/api/extension/download" download="neuroguard-extension.zip" id="downloadBtn">
             <i class="fa-solid fa-download"></i> Download Extension v1.0.0
           </a>
           <p style="margin-top: 16px; font-size: 0.78rem; color: var(--text-secondary, #64748b);">
@@ -262,7 +262,7 @@
               <div class="ext-step__num"></div>
               <div class="ext-step__text">
                 <strong>Load Unpacked</strong>
-                <span>Click "Load unpacked" and select the extracted extension folder.</span>
+                <span>Click "Load unpacked" and select the extracted <code>neuroguard-extension</code> folder.</span>
               </div>
             </div>
             <div class="ext-step">
@@ -284,20 +284,6 @@
         AAP.requireAuth();
         document.getElementById("logout").addEventListener("click", function () {
           AAP.logout();
-        });
-
-        // Handle download button - direct folder download instruction
-        document.getElementById("downloadBtn").addEventListener("click", function (e) {
-          e.preventDefault();
-          // Show instruction since the extension is loaded locally
-          var msg = "To install the NeuroGuard Chrome Extension:\n\n" +
-                    "1. Open chrome://extensions/\n" +
-                    "2. Enable Developer Mode\n" +
-                    "3. Click 'Load unpacked'\n" +
-                    "4. Select the 'chrome-extension' folder from the project directory\n\n" +
-                    "The extension folder is located at:\n" +
-                    "Neuroguard-api/chrome-extension/";
-          alert(msg);
         });
       })();
     </script>

@@ -1,15 +1,19 @@
+"""FastAPI application entrypoint: API, static frontend, security middleware."""
+
+import io
 import os
+import zipfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from config import FRONTEND_ROOT
+from config import FRONTEND_ROOT, PROJECT_ROOT
 from database import close_client, ensure_indexes, get_db
 from limiter_config import limiter
 from routes.agent_routes import (
@@ -49,6 +53,29 @@ app.add_middleware(
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/api/extension/download")
+async def download_extension():
+    """Zip the chrome-extension folder on the fly and serve as a download."""
+    ext_dir = PROJECT_ROOT / "chrome-extension"
+    if not ext_dir.exists():
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Extension folder not found")
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for file_path in ext_dir.rglob("*"):
+            if file_path.is_file() and ".git" not in file_path.parts:
+                arcname = f"neuroguard-extension/{file_path.relative_to(ext_dir)}"
+                zf.write(file_path, arcname)
+    buf.seek(0)
+
+    return StreamingResponse(
+        buf,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=neuroguard-extension.zip"},
+    )
 
 
 app.include_router(auth_router, prefix="/api")
