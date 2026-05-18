@@ -31,15 +31,13 @@ function registerNode(nodeId, config) {
 // ─── Workflow Definition ───────────────────────────────────────────────────
 const THREAT_DETECTION_WORKFLOW = {
   id: "threat_detection_v1",
-  name: "AI Threat Detection Pipeline",
+  name: "Reputation Threat Detection Pipeline",
   version: "1.0.0",
-  description: "Multi-layer AI-powered website threat analysis and blocking",
+  description: "Reputation-based website threat analysis and blocking",
   nodes: [
     "detect_url",
-    "gemini_analysis",
     "serpapi_check",
     "decision_engine",
-    "ai_explain",
     "block_website",
   ],
 };

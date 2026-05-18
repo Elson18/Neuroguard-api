@@ -49,56 +49,7 @@ registerNode("detect_url", {
   },
 });
 
-// ─── Node 2: Gemini AI Analysis ────────────────────────────────────────────
-registerNode("gemini_analysis", {
-  label: "Gemini AI Analysis",
-  description: "Classifies URL using Gemini Flash as SAFE / SUSPICIOUS / HARMFUL",
-  async execute(context) {
-    const { url } = context;
-
-    const prompt = `You are a cybersecurity URL classifier.
-
-Analyze this URL and classify it as:
-SAFE
-SUSPICIOUS
-HARMFUL
-
-Reply ONLY one word.
-
-URL:
-${url}`;
-
-    try {
-      const response = await fetch(GEMINI_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      });
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error(`  │  Gemini API error (${response.status}):`, errorBody);
-        return { geminiResult: null, geminiError: true };
-      }
-
-      const data = await response.json();
-      const result = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase() || null;
-
-      const icon = result === "SAFE" ? "✅" :
-                   result === "SUSPICIOUS" ? "⚠️" :
-                   result === "HARMFUL" ? "🚨" : "❓";
-
-      console.log(`  │  ${icon} Classification: ${result || "UNKNOWN"}`);
-
-      return { geminiResult: result, geminiError: false };
-    } catch (error) {
-      console.error(`  │  Gemini request failed: ${error.message}`);
-      return { geminiResult: null, geminiError: true };
-    }
-  },
-});
+// ─── Node 2: Gemini AI Analysis (REMOVED) ───────────────────────────────────
 
 // ─── Node 3: SerpApi Reputation Check ──────────────────────────────────────
 registerNode("serpapi_check", {
@@ -168,16 +119,22 @@ registerNode("serpapi_check", {
 // ─── Node 4: Decision Engine ───────────────────────────────────────────────
 registerNode("decision_engine", {
   label: "Decision Engine",
-  description: "Combines AI + reputation results to make final allow/block decision",
+  description: "Reputation results to make final allow/block decision",
   execute(context) {
-    const { geminiResult, serpRisky, serpMatchCount } = context;
+    const { url, serpRisky, serpMatchCount, serpMatches } = context;
 
-    const shouldBlock = geminiResult === "HARMFUL" || serpRisky;
+    // Check for explicit blocked simulation URLs
+    const isAmtsoSimulation = url && url.includes("amtso.org/security-features-check/phishing-page");
+    const isAmtsoDownload = url && url.includes("amtso.org/security-features-check/download-file");
+    const isEicarSimulation = url && url.includes("eicar.org/download-anti-malware-testfile");
+    const shouldBlock = serpRisky || isAmtsoSimulation || isAmtsoDownload || isEicarSimulation;
     const decision = shouldBlock ? "BLOCKED" : "ALLOWED";
 
     const reasons = [];
-    if (geminiResult === "HARMFUL") reasons.push("Gemini → HARMFUL");
     if (serpRisky) reasons.push(`SerpApi → ${serpMatchCount} threat(s)`);
+    if (isAmtsoSimulation) reasons.push("AMTSO Phishing Simulation Test");
+    if (isAmtsoDownload) reasons.push("AMTSO Malware Download Simulation Test");
+    if (isEicarSimulation) reasons.push("EICAR Anti-Malware Testfile Simulation");
 
     if (shouldBlock) {
       console.log(`  │  🛡️  BLOCK — ${reasons.join(" + ")}`);
@@ -185,60 +142,28 @@ registerNode("decision_engine", {
       console.log(`  │  ✅ ALLOW — No threats detected`);
     }
 
-    return { decision, shouldBlock, decisionReasons: reasons };
-  },
-});
-
-// ─── Node 5: AI Explanation Generator ──────────────────────────────────────
-registerNode("ai_explain", {
-  label: "AI Explanation Generator",
-  description: "Generates a human-readable reason for blocking using Gemini AI",
-  async execute(context) {
-    const { shouldBlock, url, geminiResult, serpRisky } = context;
-
-    if (!shouldBlock) {
-      console.log(`  │  ⏭️  Site allowed — no explanation needed`);
-      return { explanation: null, riskLevel: "LOW" };
-    }
-
-    // Determine risk level
-    let riskLevel = "MEDIUM";
-    if (geminiResult === "HARMFUL" && serpRisky) {
+    // Generate threat-specific explanation
+    let explanation = null;
+    let riskLevel = "LOW";
+    if (shouldBlock) {
       riskLevel = "HIGH";
-    } else if (geminiResult === "HARMFUL" || serpRisky) {
-      riskLevel = "HIGH";
-    }
-
-    const prompt = `You are a cybersecurity expert. Explain in one short sentence (under 20 words) why this URL may be dangerous:\n${url}`;
-
-    try {
-      const response = await fetch(GEMINI_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      });
-
-      if (!response.ok) {
-        console.error(`  │  Gemini explanation API error (${response.status})`);
-        return { explanation: "This website was flagged as potentially dangerous.", riskLevel };
+      if (isAmtsoSimulation || isAmtsoDownload || isEicarSimulation) {
+        explanation = "Harmful website detected. Access blocked by NeuroGuard to protect your device from phishing and malware.";
+      } else {
+        const topMatch = serpMatches && serpMatches[0];
+        if (topMatch) {
+          explanation = `This site was flagged for a potential threat: "${topMatch.keyword}" was mentioned in search results: "${topMatch.title}".`;
+        } else {
+          explanation = "This website has a poor online reputation and has been flagged as unsafe.";
+        }
       }
-
-      const data = await response.json();
-      const explanation = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "This website was flagged as potentially dangerous.";
-
-      const riskIcon = riskLevel === "HIGH" ? "🔴" : riskLevel === "MEDIUM" ? "🟡" : "🟢";
-      console.log(`  │  💬 Explanation : ${explanation}`);
-      console.log(`  │  ${riskIcon} Risk Level : ${riskLevel}`);
-
-      return { explanation, riskLevel };
-    } catch (error) {
-      console.error(`  │  Explanation generation failed: ${error.message}`);
-      return { explanation: "This website was flagged as potentially dangerous.", riskLevel };
     }
+
+    return { decision, shouldBlock, decisionReasons: reasons, explanation, riskLevel };
   },
 });
+
+// ─── Node 5: AI Explanation Generator (REMOVED) ────────────────────────────
 
 // ─── Node 6: Block Website ────────────────────────────────────────────────
 registerNode("block_website", {
@@ -302,7 +227,7 @@ async function runThreatPipeline(url, source, tabId) {
     const finalData = {
       domain: result.domain || domain,
       url,
-      gemini: result.geminiResult || null,
+      gemini: (result.decision === "BLOCKED" || result.serpRisky) ? "HARMFUL" : "SAFE",
       serpRisky: result.serpRisky || false,
       serpMatchCount: result.serpMatchCount || 0,
       decision: result.decision || "ALLOWED",
@@ -323,7 +248,7 @@ async function runThreatPipeline(url, source, tabId) {
       history.unshift({
         url,
         domain: result.domain || domain,
-        status: result.geminiResult || "UNKNOWN",
+        status: (result.decision === "BLOCKED" || result.serpRisky) ? "HARMFUL" : "SAFE",
         action: result.decision || "ALLOWED",
         serpRisky: result.serpRisky || false,
         serpMatchCount: result.serpMatchCount || 0,

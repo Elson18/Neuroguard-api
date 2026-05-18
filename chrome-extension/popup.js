@@ -11,7 +11,6 @@ const statusIcon = document.getElementById("statusIcon");
 const statusLabel = document.getElementById("statusLabel");
 const statusSublabel = document.getElementById("statusSublabel");
 const domainValue = document.getElementById("domainValue");
-const geminiBadge = document.getElementById("geminiBadge");
 const serpBadge = document.getElementById("serpBadge");
 const footerDot = document.getElementById("footerDot");
 
@@ -22,8 +21,6 @@ function renderResult(result) {
     statusIcon.textContent = "🔍";
     statusLabel.textContent = "Analyzing...";
     statusSublabel.textContent = "Waiting for analysis results";
-    geminiBadge.className = "row-badge badge-loading";
-    geminiBadge.innerHTML = '<span class="spinner"></span> Pending';
     serpBadge.className = "row-badge badge-loading";
     serpBadge.innerHTML = '<span class="spinner"></span> Pending';
     footerDot.className = "dot dot-blue";
@@ -32,22 +29,6 @@ function renderResult(result) {
 
   // Domain
   domainValue.textContent = result.domain || "Unknown";
-
-  // ── Gemini badge ──
-  const gemini = result.gemini;
-  if (gemini === "SAFE") {
-    geminiBadge.className = "row-badge badge-safe";
-    geminiBadge.textContent = "✅ Safe";
-  } else if (gemini === "SUSPICIOUS") {
-    geminiBadge.className = "row-badge badge-suspicious";
-    geminiBadge.textContent = "⚠️ Suspicious";
-  } else if (gemini === "HARMFUL") {
-    geminiBadge.className = "row-badge badge-harmful";
-    geminiBadge.textContent = "🚨 Harmful";
-  } else {
-    geminiBadge.className = "row-badge badge-error";
-    geminiBadge.textContent = "— Error";
-  }
 
   // ── SerpApi badge ──
   if (result.serpRisky) {
@@ -65,14 +46,8 @@ function renderResult(result) {
     statusBanner.className = "status-banner harmful";
     statusIcon.textContent = "🚨";
     statusLabel.textContent = "Harmful — Blocked";
-    statusSublabel.textContent = "This website has been blocked by AI";
+    statusSublabel.textContent = result.explanation || "This website has been blocked by AI";
     footerDot.className = "dot dot-red";
-  } else if (gemini === "SUSPICIOUS") {
-    statusBanner.className = "status-banner suspicious";
-    statusIcon.textContent = "⚠️";
-    statusLabel.textContent = "Suspicious";
-    statusSublabel.textContent = "Proceed with caution";
-    footerDot.className = "dot dot-yellow";
   } else {
     statusBanner.className = "status-banner safe";
     statusIcon.textContent = "✅";
@@ -105,8 +80,6 @@ async function loadCurrentTabResult() {
       statusIcon.textContent = "🏠";
       statusLabel.textContent = "Internal Page";
       statusSublabel.textContent = "Browser pages are not analyzed";
-      geminiBadge.className = "row-badge badge-error";
-      geminiBadge.textContent = "— N/A";
       serpBadge.className = "row-badge badge-error";
       serpBadge.textContent = "— N/A";
       footerDot.className = "dot dot-blue";

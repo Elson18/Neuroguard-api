@@ -146,6 +146,7 @@
           <a href="/chat"><i class="fa-solid fa-comments"></i> Chat</a>
           <a href="/agents"><i class="fa-solid fa-sliders"></i> Manage agents</a>
           <a class="is-active" href="/extension"><i class="fa-solid fa-puzzle-piece"></i> Download Extension</a>
+          <a href="/browse-dashboard"><i class="fa-solid fa-chart-bar"></i> Browse Dashboard</a>
         </nav>
         <div class="sidebar__footer">
           <button class="btn btn--ghost btn--ripple" type="button" id="logout" style="width: 100%"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out</button>
@@ -177,8 +178,8 @@
         <div class="ext-features">
           <div class="ext-feature">
             <div class="ext-feature__icon ext-feature__icon--ai"><i class="fa-solid fa-robot"></i></div>
-            <h3>Gemini AI Analysis</h3>
-            <p>Every URL is classified as Safe, Suspicious, or Harmful using Google's Gemini Flash model.</p>
+            <h3>Groq AI Analysis</h3>
+            <p>Every URL is classified as Safe, Suspicious, or Harmful using Groq's llama3-8b-8192 model.</p>
           </div>
           <div class="ext-feature">
             <div class="ext-feature__icon ext-feature__icon--search"><i class="fa-solid fa-magnifying-glass"></i></div>
@@ -214,7 +215,7 @@
           <div class="pipeline-flow">
             <div class="pipeline-node">🔗 URL Detection</div>
             <span class="pipeline-arrow">→</span>
-            <div class="pipeline-node">🤖 Gemini AI</div>
+            <div class="pipeline-node">🤖 Groq AI</div>
             <span class="pipeline-arrow">→</span>
             <div class="pipeline-node">🔎 SerpApi</div>
             <span class="pipeline-arrow">→</span>

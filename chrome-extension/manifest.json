@@ -8,6 +8,10 @@
     "activeTab",
     "storage"
   ],
+  "host_permissions": [
+    "https://api.groq.com/*",
+    "https://serpapi.com/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "NeuroGuard — AI Threat Detection"
