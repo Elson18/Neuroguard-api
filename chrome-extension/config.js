@@ -2,14 +2,14 @@
  * NeuroGuard - Configuration
  *
  * ⚠️  Replace the placeholders below with your actual API keys.
- *     Groq    → https://console.groq.com/keys
+ *     Gemini  → https://aistudio.google.com/app/apikey
  *     SerpApi → https://serpapi.com/manage-api-key
  */
 
-// ─── Groq AI ────────────────────────────────────────────────────────────────
-const GROQ_API_KEY = "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";
-const GROQ_MODEL = "llama3-8b-8192";
-const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+// ─── Gemini AI ────────────────────────────────────────────────────────────────
+const GEMINI_API_KEY = "AIzaSyBBEgBGwhLu9F5zRmWb4L_Vh6nAWFGgofM";
+const GEMINI_MODEL = "gemini-1.5-flash";
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 // ─── SerpApi (Website Reputation) ──────────────────────────────────────────
 const SERPAPI_KEY = "4d5e97bf8c8c37785a2fe205d1cd8e559f6b34f6320b557090b509a33daefc57";
