@@ -1,5 +1,3 @@
-"""FastAPI application entrypoint: API, static frontend, security middleware."""
-
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
