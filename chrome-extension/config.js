@@ -7,7 +7,7 @@
  */
 
 // ─── Groq AI ────────────────────────────────────────────────────────────────
-const GROQ_API_KEY = "YOUR_GROQ_API_KEY_HERE";
+const GROQ_API_KEY = "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";
 const GROQ_MODEL = "llama3-8b-8192";
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 
