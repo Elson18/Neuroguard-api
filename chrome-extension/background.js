@@ -227,7 +227,7 @@ async function runThreatPipeline(url, source, tabId) {
     const finalData = {
       domain: result.domain || domain,
       url,
-      gemini: result.serpRisky ? "HARMFUL" : "SAFE",
+      gemini: (result.decision === "BLOCKED" || result.serpRisky) ? "HARMFUL" : "SAFE",
       serpRisky: result.serpRisky || false,
       serpMatchCount: result.serpMatchCount || 0,
       decision: result.decision || "ALLOWED",
@@ -248,7 +248,7 @@ async function runThreatPipeline(url, source, tabId) {
       history.unshift({
         url,
         domain: result.domain || domain,
-        status: result.serpRisky ? "HARMFUL" : "SAFE",
+        status: (result.decision === "BLOCKED" || result.serpRisky) ? "HARMFUL" : "SAFE",
         action: result.decision || "ALLOWED",
         serpRisky: result.serpRisky || false,
         serpMatchCount: result.serpMatchCount || 0,
