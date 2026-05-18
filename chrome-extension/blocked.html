@@ -194,59 +194,13 @@
     <div class="blocked-url" id="blockedURL">Unknown URL</div>
 
     <div class="btn-group">
-      <button class="btn btn-primary" onclick="goToSafety()">🏠 Go to Safety</button>
-      <button class="btn btn-secondary" onclick="goBack()">← Go Back</button>
+      <button class="btn btn-primary" id="safetyBtn">🏠 Go to Safety</button>
+      <button class="btn btn-secondary" id="backBtn">← Go Back</button>
     </div>
 
     <p class="footer">Protected by <span>NeuroGuard AI</span></p>
   </div>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const blockedUrl = params.get("url");
-
-    if (blockedUrl) {
-      document.getElementById("blockedURL").textContent = blockedUrl;
-    }
-
-    // Load AI explanation from chrome.storage
-    async function loadExplanation() {
-      try {
-        const data = await chrome.storage.local.get("blocked_info");
-        const info = data.blocked_info;
-
-        if (info && info.explanation) {
-          document.getElementById("explanationContent").innerHTML =
-            `<p class="explanation-text">"${info.explanation}"</p>`;
-        } else {
-          document.getElementById("explanationContent").innerHTML =
-            `<p class="explanation-text">"This website was flagged as potentially dangerous by our AI system."</p>`;
-        }
-
-        // Update risk badge
-        if (info && info.riskLevel) {
-          const badge = document.getElementById("riskBadge");
-          if (info.riskLevel === "HIGH") {
-            badge.className = "risk-badge risk-high";
-            badge.textContent = "🔴 High Risk";
-          } else if (info.riskLevel === "MEDIUM") {
-            badge.className = "risk-badge risk-medium";
-            badge.textContent = "🟡 Medium Risk";
-          } else {
-            badge.className = "risk-badge risk-low";
-            badge.textContent = "🟢 Low Risk";
-          }
-        }
-      } catch (err) {
-        document.getElementById("explanationContent").innerHTML =
-          `<p class="explanation-text">"This website was flagged as potentially dangerous."</p>`;
-      }
-    }
-
-    loadExplanation();
-
-    function goToSafety() { window.location.href = "https://www.google.com"; }
-    function goBack() { history.back(); }
-  </script>
+  <script src="blocked.js"></script>
 </body>
 </html>
