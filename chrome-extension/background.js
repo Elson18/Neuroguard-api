@@ -5,7 +5,7 @@
  * Uses a node-based pipeline architecture inspired by n8n.
  *
  * Workflow Pipeline:
- *   detect_url → gemini_analysis → serpapi_check → decision_engine → block_website
+ *   detect_url → groq_analysis → serpapi_check → decision_engine → block_website
  */
 
 // Import modules
@@ -49,10 +49,10 @@ registerNode("detect_url", {
   },
 });
 
-// ─── Node 2: Gemini AI Analysis ────────────────────────────────────────────
-registerNode("gemini_analysis", {
-  label: "Gemini AI Analysis",
-  description: "Classifies URL using Gemini Flash as SAFE / SUSPICIOUS / HARMFUL",
+// ─── Node 2: Groq AI Analysis ─────────────────────────────────────────────
+registerNode("groq_analysis", {
+  label: "Groq AI Analysis",
+  description: "Classifies URL using Groq (llama3-8b-8192) as SAFE / SUSPICIOUS / HARMFUL",
   async execute(context) {
     const { url } = context;
 
@@ -69,22 +69,28 @@ URL:
 ${url}`;
 
     try {
-      const response = await fetch(GEMINI_ENDPOINT, {
+      const response = await fetch(GROQ_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${GROQ_API_KEY}`,
+        },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
+          model: GROQ_MODEL,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 10,
+          temperature: 0,
         }),
       });
 
       if (!response.ok) {
         const errorBody = await response.text();
-        console.error(`  │  Gemini API error (${response.status}):`, errorBody);
+        console.error(`  │  Groq API error (${response.status}):`, errorBody);
         return { geminiResult: null, geminiError: true };
       }
 
       const data = await response.json();
-      const result = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase() || null;
+      const result = data?.choices?.[0]?.message?.content?.trim().toUpperCase() || null;
 
       const icon = result === "SAFE" ? "✅" :
                    result === "SUSPICIOUS" ? "⚠️" :
@@ -94,7 +100,7 @@ ${url}`;
 
       return { geminiResult: result, geminiError: false };
     } catch (error) {
-      console.error(`  │  Gemini request failed: ${error.message}`);
+      console.error(`  │  Groq request failed: ${error.message}`);
       return { geminiResult: null, geminiError: true };
     }
   },
@@ -176,7 +182,7 @@ registerNode("decision_engine", {
     const decision = shouldBlock ? "BLOCKED" : "ALLOWED";
 
     const reasons = [];
-    if (geminiResult === "HARMFUL") reasons.push("Gemini → HARMFUL");
+    if (geminiResult === "HARMFUL") reasons.push("Groq → HARMFUL");
     if (serpRisky) reasons.push(`SerpApi → ${serpMatchCount} threat(s)`);
 
     if (shouldBlock) {
@@ -192,7 +198,7 @@ registerNode("decision_engine", {
 // ─── Node 5: AI Explanation Generator ──────────────────────────────────────
 registerNode("ai_explain", {
   label: "AI Explanation Generator",
-  description: "Generates a human-readable reason for blocking using Gemini AI",
+  description: "Generates a human-readable reason for blocking using Groq AI",
   async execute(context) {
     const { shouldBlock, url, geminiResult, serpRisky } = context;
 
@@ -212,21 +218,27 @@ registerNode("ai_explain", {
     const prompt = `You are a cybersecurity expert. Explain in one short sentence (under 20 words) why this URL may be dangerous:\n${url}`;
 
     try {
-      const response = await fetch(GEMINI_ENDPOINT, {
+      const response = await fetch(GROQ_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${GROQ_API_KEY}`,
+        },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
+          model: GROQ_MODEL,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 60,
+          temperature: 0.3,
         }),
       });
 
       if (!response.ok) {
-        console.error(`  │  Gemini explanation API error (${response.status})`);
+        console.error(`  │  Groq explanation API error (${response.status})`);
         return { explanation: "This website was flagged as potentially dangerous.", riskLevel };
       }
 
       const data = await response.json();
-      const explanation = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "This website was flagged as potentially dangerous.";
+      const explanation = data?.choices?.[0]?.message?.content?.trim() || "This website was flagged as potentially dangerous.";
 
       const riskIcon = riskLevel === "HIGH" ? "🔴" : riskLevel === "MEDIUM" ? "🟡" : "🟢";
       console.log(`  │  💬 Explanation : ${explanation}`);

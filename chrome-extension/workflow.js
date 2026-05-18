@@ -36,7 +36,7 @@ const THREAT_DETECTION_WORKFLOW = {
   description: "Multi-layer AI-powered website threat analysis and blocking",
   nodes: [
     "detect_url",
-    "gemini_analysis",
+    "groq_analysis",
     "serpapi_check",
     "decision_engine",
     "ai_explain",
